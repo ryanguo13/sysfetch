@@ -1,39 +1,46 @@
-#!/usr/bin/env julia
+using Crayons
 
-function get_system_info()
-    # 获取基本系统信息
-    os_name = Sys.KERNEL
-    os_release = Sys.ARCH
-    julia_version = VERSION
-    cpu_threads = Base.Sys.CPU_THREADS
-    mem_total = Base.Sys.total_memory() / (1024^3)  # 将内存转换为GB
-    hostname = gethostname()
+# 定义颜色和样式
+header = Crayon(foreground = :cyan, bold = true)
+info = Crayon(foreground = :green)
+cpu_info_header = Crayon(foreground = :magenta, bold = true)
+uptime_header = Crayon(foreground = :yellow, bold = true)
+os_header = Crayon(foreground = :blue, bold = true)
+arch_header = Crayon(foreground = :red, bold = true)
+memory_header = Crayon(foreground = :white, bold = true)
+
+
+# 收集信息
+info_text = """
+
+$(os_header("Operating System:")) $(Sys.KERNEL)
+$(arch_header("Architecture:")) $(Sys.ARCH)
+$(cpu_info_header("CPU Information:"))
+$(info("Model:")) $(Sys.cpu_info()[1].model)
+$(header("Threads:")) $(Sys.CPU_THREADS)
+$(memory_header("Memory Information:")) Total Memory: $(round(Sys.total_memory() / (1024^3), digits=2)) GB
+$(uptime_header("$(read(`uptime`, String))"))
+Julia Version: $(VERSION)
+"""
+
+# 创建框的上下边界和侧边
+function add_emoji_box(text::String)
+    lines = split(text, '\n')
+    max_len = maximum(length.(lines))   # 找到最长的一行
+
+    top_border = repeat("✧", max_len)  # emoji 符号的上边界，长度与最长行一致
+    bottom_border = repeat("✧", max_len)  # emoji 符号的下边界
     
-    # 打印系统信息
-    println("System Information:")
-    println("===================")
-    println("Operating System   : $os_name $os_release")
-    println("Julia Version      : $julia_version")
-    println("CPU Threads        : $cpu_threads")
-    println("Total Memory (GB)  : $(round(mem_total, digits=2))")
-    println("Hostname           : $hostname")
-end
-
-function get_uptime()
-    # 获取系统运行时间（此部分根据平台可能有所不同，Linux下可以从/proc/uptime读取）
-    try
-        uptime_seconds = Sys.uptime()
-        uptime_hours = uptime_seconds / 3600
-        println("Uptime             : $(round(uptime_hours, digits=2)) hours")
-    catch e
-        println("Unable to retrieve uptime on this system.")
+    boxed_lines = [top_border]
+    for line in lines
+        push!(boxed_lines, rpad(line, max_len))  # 直接输出内容，并填充至最大长度
     end
+    push!(boxed_lines, bottom_border)
+    
+    return join(boxed_lines, "\n")
 end
 
-function main()
-    get_system_info()
-    get_uptime()
-end
 
-main()
-
+# 输出带 emoji 的系统信息框
+# println(header("--------- System Information --------"))
+println(add_emoji_box(info_text))
