@@ -1,4 +1,12 @@
-using Crayons
+try
+    using Crayons
+catch e
+    println("Crayons package not found. Installing Crayons...")
+    import Pkg
+    Pkg.add("Crayons")
+    using Crayons
+end
+
 
 # 定义颜色和样式
 header = Crayon(foreground = :cyan, bold = true)
